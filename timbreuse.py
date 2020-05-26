@@ -12,6 +12,7 @@
 # Author  : Joseph Métrailler
 # Date    : 15.05.2020
 # Version : 0.1
+# Branch  : master -> onebutton
 #
 #--------------------------------------
 import RPi.GPIO as GPIO
@@ -31,7 +32,6 @@ class Timbreuse:
     def __init__(self):
         
         self.button_working = False
-        self.root_working = False
         self.ip_db_server = "192.168.1.142"
         self.mysql_timbreuse = MysqlTimbreuse(self.ip_db_server)
         self.choose_person = False      
@@ -115,11 +115,6 @@ class Timbreuse:
 
     def button_pressed_callback(self, channel):
 
-# tbd_01 begin --> a améliorer
-#         if self.root_working : # si le root est en train d'actualiser l'affichage : ne rien faire
-#             return # si le root est en train d'actualiser l'affichage : ne rien faire
-# tbd_01 end        
-
         self.button_working = True
         
         # red button
@@ -157,21 +152,46 @@ class Timbreuse:
         else:
             self.gray_btn_fire = False
             
-#         self.button_working = False
+        if not self.choose_person and not self.choose_task and not self.stop_running:
+            self.button_working = False
 
     def red_button_fired(self): # on quitte le boulot
 
-        # are persons working ? mo -> du nothing
-        if len(self.tasks_running) == 0:
-            return
-        # create the list of working persons
-        self.id_qui_stoping = self.tasks_running[0][0]
-        self.qui_stoping = self.tasks_running[0][3]
-        self.no_qui_stoping = 0
-        self.stop_running = True
+        if self.stop_running:
+            
+            nbre_qui_running = len(self.tasks_running)
+            if nbre_qui_running <= 1:
+                return # do nothing because there is only on peron working
+                
+            # find the next person 
+            if self.no_qui_stoping >= nbre_qui_running - 1:
+                # if last then restart to first
+                self.no_qui_stoping = 0
+            else:
+                # else select the next
+                self.no_qui_stoping += 1
+            print(self.no_qui_stoping)
+            # execute the query
+            self.qui_stoping = self.tasks_running[self.no_qui_stoping][3]
+            self.id_qui_stoping = self.tasks_running[self.no_qui_stoping][0]
+            # display the person
         
-        self.lcd_string(self.qui_stoping, self.LCD_LINE_1)
-        self.lcd_string("stop job ?", self.LCD_LINE_2)
+            self.lcd_string(self.qui_stoping, self.LCD_LINE_1)
+            self.lcd_string("stop job ?", self.LCD_LINE_2)
+        
+        else:
+
+            # are persons working ? mo -> du nothing
+            if len(self.tasks_running) == 0:
+                return
+            # create the list of working persons
+            self.id_qui_stoping = self.tasks_running[0][0]
+            self.qui_stoping = self.tasks_running[0][3]
+            self.no_qui_stoping = 0
+            self.stop_running = True
+            
+            self.lcd_string(self.qui_stoping, self.LCD_LINE_1)
+            self.lcd_string("stop job ?", self.LCD_LINE_2)
         
 
     def green_button_fired(self): # on commence le boulot
@@ -179,11 +199,11 @@ class Timbreuse:
         # first step
             # display the first person
             # flag one_person_starting_the_job
+        # connect to the db
+        con, e = self.mysql_timbreuse.get_db_connexion()
+        cur = con.cursor()
             
-        if not self.choose_person and not self.choose_task:
-            # connect to the db
-            con, e = self.mysql_timbreuse.get_db_connexion()
-            cur = con.cursor()
+        if not self.choose_person and not self.choose_task and not self.stop_running:
             # select the first person
             sql_txt = "SELECT prenom, idqui FROM qui ORDER BY prenom LIMIT 1;" 
             cur.execute(sql_txt)
@@ -196,20 +216,8 @@ class Timbreuse:
             self.lcd_string("", self.LCD_LINE_2)
             self.choose_person = True
             print("self.qui_en_cours:", self.qui_en_cours)
-            # close the connexion
-            cur.close()
-            con.close()
-
-    def blue_button_fired(self): # down
-        
-        # if one_person_starting_the_job : display the next person
-        # if one_person_choosing_the_task : display the next task
-        
-        # connect to the db
-        con, e = self.mysql_timbreuse.get_db_connexion()
-        cur = con.cursor()
-        # find the next person
-        if self.choose_person:
+            
+        elif self.choose_person:
             # find the last idqui
             sql_txt = "SELECT prenom, idqui FROM qui ORDER BY prenom;"
             cur.execute(sql_txt)
@@ -254,31 +262,91 @@ class Timbreuse:
             self.lcd_string(self.quoi_en_cours, self.LCD_LINE_2)
             print("self.qui_en_cours:", self.qui_en_cours, "self.quoi_en_cours:", self.quoi_en_cours)
             
-        elif self.stop_running:
             
-            nbre_qui_running = len(self.tasks_running)
-            if nbre_qui_running <= 1:
-                return # do nothing because there is only on peron working
-                
-            # find the next person 
-            if self.no_qui_stoping >= nbre_qui_running - 1:
-                # if last then restart to first
-                self.no_qui_stoping = 0
-            else:
-                # else select the next
-                self.no_qui_stoping += 1
-            print(self.no_qui_stoping)
-            # execute the query
-            self.qui_stoping = self.tasks_running[self.no_qui_stoping][3]
-            self.id_qui_stoping = self.tasks_running[self.no_qui_stoping][0]
-            # display the person
-        
-            self.lcd_string(self.qui_stoping, self.LCD_LINE_1)
-            self.lcd_string("stop job ?", self.LCD_LINE_2)
             
-       # close the connexion
+        # close the connexion
         cur.close()
         con.close()
+
+    def blue_button_fired(self): # down
+        pass
+#         # if one_person_starting_the_job : display the next person
+#         # if one_person_choosing_the_task : display the next task
+#         
+#         # connect to the db
+#         con, e = self.mysql_timbreuse.get_db_connexion()
+#         cur = con.cursor()
+#         # find the next person
+#         if self.choose_person:
+#             # find the last idqui
+#             sql_txt = "SELECT prenom, idqui FROM qui ORDER BY prenom;"
+#             cur.execute(sql_txt)
+#             rec = cur.fetchall()
+#             nbre_qui = len(rec) - 1
+#             # find the next person 
+#             if self.no_qui_en_cours >= nbre_qui:
+#                 # if last then restart to first
+#                 self.no_qui_en_cours = 0
+#             else:
+#                 # else select the next
+#                 self.no_qui_en_cours += 1
+#             # execute the query
+#             self.qui_en_cours = rec[self.no_qui_en_cours][0]
+#             self.id_qui_en_cours = rec[self.no_qui_en_cours][1]
+#             # display the person
+#             self.lcd_string(self.qui_en_cours, self.LCD_LINE_1)
+#             print("self.qui_en_cours:", self.qui_en_cours)
+#             
+#         elif self.choose_task:
+#             # find the last idquoi
+#             sql_txt = "".join(["SELECT quoi.activite, quoi.idquoi",
+#                                " FROM qui INNER JOIN (quoi INNER JOIN quiquoi ON (quoi.idquoi = quiquoi.idquoi)",
+#                                " AND (quoi.idquoi = quiquoi.idquoi)) ON (qui.idqui = quiquoi.idqui) AND (qui.idqui = quiquoi.idqui)",
+#                                " WHERE (((qui.prenom)='" , str(self.qui_en_cours), "'))",
+#                                " ORDER BY quoi.activite;"])
+#             cur.execute(sql_txt)
+#             rec = cur.fetchall()
+#             nbre_quoi = len(rec) - 1
+#             # find the next person 
+#             if self.no_quoi_en_cours >= nbre_quoi:
+#                 # if last then restart to first
+#                 self.no_quoi_en_cours = 0
+#             else:
+#                 # else select the next
+#                 self.no_quoi_en_cours += 1
+#             print("self.no_quoi_en_cours:", self.no_quoi_en_cours, "nbre_quoi:", nbre_quoi)
+#                 # if last then restart to first
+#             self.quoi_en_cours = rec[self.no_quoi_en_cours][0]
+#             self.id_quoi_en_cours = rec[self.no_quoi_en_cours][1]
+#             # display the person
+#             self.lcd_string(self.quoi_en_cours, self.LCD_LINE_2)
+#             print("self.qui_en_cours:", self.qui_en_cours, "self.quoi_en_cours:", self.quoi_en_cours)
+#             
+#         elif self.stop_running:
+#             
+#             nbre_qui_running = len(self.tasks_running)
+#             if nbre_qui_running <= 1:
+#                 return # do nothing because there is only on peron working
+#                 
+#             # find the next person 
+#             if self.no_qui_stoping >= nbre_qui_running - 1:
+#                 # if last then restart to first
+#                 self.no_qui_stoping = 0
+#             else:
+#                 # else select the next
+#                 self.no_qui_stoping += 1
+#             print(self.no_qui_stoping)
+#             # execute the query
+#             self.qui_stoping = self.tasks_running[self.no_qui_stoping][3]
+#             self.id_qui_stoping = self.tasks_running[self.no_qui_stoping][0]
+#             # display the person
+#         
+#             self.lcd_string(self.qui_stoping, self.LCD_LINE_1)
+#             self.lcd_string("stop job ?", self.LCD_LINE_2)
+#             
+#        # close the connexion
+#         cur.close()
+#         con.close()
         
 
     def yellow_button_fired(self): # ok
@@ -353,12 +421,15 @@ class Timbreuse:
             print(sql_txt)
 
             disp_txt_1 = " ".join([str(self.tasks_running[self.no_qui_stoping][3])[0], "->", str(self.tasks_running[self.no_qui_stoping][4])])
-            disp_txt_2 = " ".join(["Stoping", time.strftime("%H:%M")])
+            disp_txt_2 = " ".join(["Stoped at", time.strftime("%H:%M")])
             self.lcd_string(disp_txt_1, self.LCD_LINE_1)
             self.lcd_string(disp_txt_2, self.LCD_LINE_2)
 
-
-
+            self.tasks_running.pop(self.no_qui_stoping)
+            self.choose_person = False
+            self.choose_task = False
+            self.stop_running = False
+        
 #         cur.close()
         con.close()
 #         self.button_working = False
@@ -462,14 +533,34 @@ class Timbreuse:
             elapsed = (datetime.datetime.now() - last_time).total_seconds()
             
             if elapsed >= pause_time:
+                print("running the loop -> nbre running tasks:", len(self.tasks_running))
+#                 pdb.set_trace()
                 while self.button_working:
                     time.sleep(0.1)
-                self.root_working = True
-                self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
-                self.lcd_string("                ", self.LCD_LINE_2)
+                    
+                print("sleep finished")
+                if len(self.tasks_running) > 0:
+                    
+                    if len(self.tasks_running) == 1: 
+                        txt_1 = "".join([self.tasks_running[0][3][0], " -> ", self.tasks_running[0][4]])
+                        self.lcd_string(txt_1,self.LCD_LINE_1)
+                        self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_2)
+                        
+                    elif len(self.tasks_running) == 2: 
+                        txt_1 = "".join([self.tasks_running[0][3][0], " -> ", self.tasks_running[0][4]])
+                        txt_2 = "".join([self.tasks_running[1][3][0], " -> ", self.tasks_running[1][4]])
+                        self.lcd_string(txt_1,self.LCD_LINE_1)
+                        self.lcd_string(txt_2, self.LCD_LINE_2)
+                        
+                    else: 
+                        self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
+                        self.lcd_string("users working", self.LCD_LINE_2)
+                else:
+                    self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
+                    self.lcd_string("nobody working", self.LCD_LINE_2)
+                    
                 last_time = datetime.datetime.now()
                 time.sleep(pause_time -0.5)
-                self.root_working = False
             
         
 if __name__ == '__main__':
