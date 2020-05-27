@@ -15,6 +15,11 @@
 # Branch  : master -> onebutton
 #
 #--------------------------------------
+# TO DO
+# - memoriser le idquand d'une tâche pour être sûr d'enregistrer l'heure d'arret dans le bon enregistrement
+# - evaluer la possibilité de se passer du btn OK
+# - valider le procédé d'exclusion réciproque des tâches d'affichage
+#--------------------------------------
 import RPi.GPIO as GPIO
 import time
 import pdb
@@ -51,6 +56,8 @@ class Timbreuse:
         self.qui_stop_en_cours = ""
         self.stop_running = False
         
+        self.green_btn_pressed_time = datetime.datetime.now()
+        
         # Define GPIO to LCD mapping
         self.LCD_RS = 7
         self.LCD_E  = 12
@@ -73,9 +80,9 @@ class Timbreuse:
         self.E_DELAY = 0.0001
 
         # initialise buttons adress
-        self.BTN_RED = 26
+        self.BTN_RED = 6
         self.BTN_GREEN = 19
-        self.BTN_BLUE = 6
+        self.BTN_BLUE = 26
         self.BTN_YELLOW = 13
         self.BTN_GRAY = 5
         
@@ -127,9 +134,17 @@ class Timbreuse:
         # green button
         if channel == self.BTN_GREEN and GPIO.input(self.BTN_GREEN) and not self.green_btn_fire:
             self.green_btn_fire = True
-            self.green_button_fired()
+#             self.green_button_fired()
+            self.green_btn_pressed_time = datetime.datetime.now()
         else:
             self.green_btn_fire = False
+            elapsed = (datetime.datetime.now() - self.green_btn_pressed_time).microseconds / 1000
+            print(elapsed)
+            if elapsed < 400:
+                self.green_button_fired()
+            else:
+                self.yellow_button_fired()
+
             
         # blue button
         if channel == self.BTN_BLUE and GPIO.input(self.BTN_BLUE) and not self.blue_btn_fire:
