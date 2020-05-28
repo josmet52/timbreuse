@@ -521,7 +521,6 @@ class Timbreuse:
         passe_no = 0
         self.gpio_timbreuse.lcd_string(str(datetime.datetime.now()), self.gpio_timbreuse.LCD_LINE_1)
         self.gpio_timbreuse.lcd_string("Welcome         ", self.gpio_timbreuse.LCD_LINE_2)
-        print("program timbreuse started")
         
         pause_time = 10
         
@@ -540,7 +539,7 @@ class Timbreuse:
 if __name__ == '__main__':
     
     timbreuse = Timbreuse()
-    print("program started")
+    print("program timbreuse started")
     timbreuse.waiting_loop()
         
         
