@@ -411,6 +411,7 @@ class Timbreuse:
             self.tasks_running.append((self.id_qui_en_cours, self.id_quoi_en_cours, time.strftime("%Y-%m-%d %H:%M:%S"), self.qui_en_cours, self.quoi_en_cours))
 
         elif self.stop_running:
+            
             id_qui_stoping = self.tasks_running[self.no_qui_stoping][0]
             id_quoi_stoping = self.tasks_running[self.no_qui_stoping][1]
             
@@ -436,16 +437,22 @@ class Timbreuse:
 
     def gray_button_fired(self): # cancel
 
-        # cancel the running operation
-        # reset all the flags
-        # dispaly date and time
-        self.choose_person = False
-        self.choose_task = False
-        self.qui_en_cours = '0'
-        self.idquoi_en_cours = '0'
-        self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
-        self.lcd_string("                ", self.LCD_LINE_2)
-        self.button_working = False
+        if self.choose_person or self.choose_task or self.stop_running:
+            # cancel the running operation
+            # reset all the flags
+            # dispaly date and time
+            self.choose_person = False
+            self.choose_task = False
+            self.stop_running = False
+            self.qui_en_cours = ''
+            self.idqui_en_cours = 0
+            self.quoi_en_cours = ''
+            self.idquoi_en_cours = 0
+            self.lcd_string("action canceled", self.LCD_LINE_2)
+            time.sleep(1)
+            self.update_idle_display()
+
+            self.button_working = False
  
     def lcd_init(self): 
         # Initialise display
@@ -517,6 +524,28 @@ class Timbreuse:
         for i in range(self.LCD_WIDTH):
             self.lcd_byte(ord(message[i]),self.LCD_CHR)
   
+    def update_idle_display(self):
+    
+        if len(self.tasks_running) > 0:
+            
+            if len(self.tasks_running) == 1: 
+                txt_1 = "".join([self.tasks_running[0][3][0], " -> ", self.tasks_running[0][4]])
+                self.lcd_string(txt_1,self.LCD_LINE_1)
+                self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_2)
+                
+            elif len(self.tasks_running) == 2: 
+                txt_1 = "".join([self.tasks_running[0][3][0], " -> ", self.tasks_running[0][4]])
+                txt_2 = "".join([self.tasks_running[1][3][0], " -> ", self.tasks_running[1][4]])
+                self.lcd_string(txt_1,self.LCD_LINE_1)
+                self.lcd_string(txt_2, self.LCD_LINE_2)
+                
+            else: 
+                self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
+                self.lcd_string("users working", self.LCD_LINE_2)
+        else:
+            self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
+            self.lcd_string("nobody working", self.LCD_LINE_2)
+    
         
     def waiting_loop(self):
         
@@ -537,27 +566,27 @@ class Timbreuse:
 #                 pdb.set_trace()
                 while self.button_working:
                     time.sleep(0.1)
-                    
-                print("sleep finished")
-                if len(self.tasks_running) > 0:
-                    
-                    if len(self.tasks_running) == 1: 
-                        txt_1 = "".join([self.tasks_running[0][3][0], " -> ", self.tasks_running[0][4]])
-                        self.lcd_string(txt_1,self.LCD_LINE_1)
-                        self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_2)
-                        
-                    elif len(self.tasks_running) == 2: 
-                        txt_1 = "".join([self.tasks_running[0][3][0], " -> ", self.tasks_running[0][4]])
-                        txt_2 = "".join([self.tasks_running[1][3][0], " -> ", self.tasks_running[1][4]])
-                        self.lcd_string(txt_1,self.LCD_LINE_1)
-                        self.lcd_string(txt_2, self.LCD_LINE_2)
-                        
-                    else: 
-                        self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
-                        self.lcd_string("users working", self.LCD_LINE_2)
-                else:
-                    self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
-                    self.lcd_string("nobody working", self.LCD_LINE_2)
+                self.update_idle_display()
+#                 print("sleep finished")
+#                 if len(self.tasks_running) > 0:
+#                     
+#                     if len(self.tasks_running) == 1: 
+#                         txt_1 = "".join([self.tasks_running[0][3][0], " -> ", self.tasks_running[0][4]])
+#                         self.lcd_string(txt_1,self.LCD_LINE_1)
+#                         self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_2)
+#                         
+#                     elif len(self.tasks_running) == 2: 
+#                         txt_1 = "".join([self.tasks_running[0][3][0], " -> ", self.tasks_running[0][4]])
+#                         txt_2 = "".join([self.tasks_running[1][3][0], " -> ", self.tasks_running[1][4]])
+#                         self.lcd_string(txt_1,self.LCD_LINE_1)
+#                         self.lcd_string(txt_2, self.LCD_LINE_2)
+#                         
+#                     else: 
+#                         self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
+#                         self.lcd_string("users working", self.LCD_LINE_2)
+#                 else:
+#                     self.lcd_string(str(datetime.datetime.now()),self.LCD_LINE_1)
+#                     self.lcd_string("nobody working", self.LCD_LINE_2)
                     
                 last_time = datetime.datetime.now()
                 time.sleep(pause_time -0.5)
