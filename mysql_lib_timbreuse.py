@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*-
 """
-    class Mysql to manage de db access for the programm temp_db
+    class Mysql to manage de db access for the programm timbreuse
 """
 import socket
 import sys
+import tkinter as tk
 from tkinter import messagebox
 import mysql.connector
 
-import tkinter as tk
 from datetime import datetime, timedelta
-# import time
 
 
 class MysqlTimbreuse:
