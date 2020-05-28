@@ -73,9 +73,9 @@ class Timbreuse:
         self.E_DELAY = 0.0001
 
         # initialise buttons adress
-        self.BTN_RED = 26
+        self.BTN_RED = 6
         self.BTN_GREEN = 19
-        self.BTN_BLUE = 6
+        self.BTN_BLUE = 26
         self.BTN_YELLOW = 13
         self.BTN_GRAY = 5
         
