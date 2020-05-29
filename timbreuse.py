@@ -102,11 +102,12 @@ class Timbreuse:
         self.stop_running = False
 
         # initialise buttons interrupts
-        GPIO.add_event_detect(self.gpio_timbreuse.BTN_RED, GPIO.BOTH, callback = self.button_pressed_callback, bouncetime = 20)
-        GPIO.add_event_detect(self.gpio_timbreuse.BTN_GREEN, GPIO.BOTH, callback = self.button_pressed_callback, bouncetime = 20)
         GPIO.add_event_detect(self.gpio_timbreuse.BTN_BLUE, GPIO.BOTH, callback = self.button_pressed_callback, bouncetime = 20)
+        GPIO.add_event_detect(self.gpio_timbreuse.BTN_GREEN, GPIO.BOTH, callback = self.button_pressed_callback, bouncetime = 20)
+        GPIO.add_event_detect(self.gpio_timbreuse.BTN_RED, GPIO.BOTH, callback = self.button_pressed_callback, bouncetime = 20)
         GPIO.add_event_detect(self.gpio_timbreuse.BTN_YELLOW, GPIO.BOTH, callback = self.button_pressed_callback, bouncetime = 20)
         GPIO.add_event_detect(self.gpio_timbreuse.BTN_GRAY, GPIO.BOTH, callback = self.button_pressed_callback, bouncetime = 20)
+        
         
         # flags pour gestion des boutons sans rebonds
         self.red_btn_fire = False
@@ -117,27 +118,36 @@ class Timbreuse:
         
         # pour la mesure de la durée de l'impulsion
         self.time_btn_pressed = 0
+        self.pulse_length_soll = 400
 
     # procédure appelée lors de la pression sur une boutons
     def button_pressed_callback(self, channel):
 
         # empêcher la idle_task d'accéder à l'affichage
         self.button_working = True
-            
-        # green button
-        if channel == self.gpio_timbreuse.BTN_GREEN and GPIO.input(self.gpio_timbreuse.BTN_GREEN) and not self.green_btn_fire:
+        gpio_green_status = GPIO.input(self.gpio_timbreuse.BTN_GREEN)
+        # GREEN button RAISE
+        if channel == self.gpio_timbreuse.BTN_GREEN and gpio_green_status and not self.green_btn_fire:
+            print(" ".join(["\ninput:", str(gpio_green_status)]))
             self.time_btn_pressed = datetime.datetime.now()
             self.green_btn_fire = True
-            self.green_button_fired()
-            print("Pressed: GPIO.input(self.gpio_timbreuse.BTN_GREEN)",GPIO.input(self.gpio_timbreuse.BTN_GREEN))
-        elif channel == self.gpio_timbreuse.BTN_GREEN and self.green_btn_fire:
+
+        # GREEN button FALL
+        if channel == self.gpio_timbreuse.BTN_GREEN and not gpio_green_status and self.green_btn_fire:
+            pulse_length_ist = int((datetime.datetime.now() - self.time_btn_pressed).microseconds / 1000)
+            print(" ".join(["input:", str(gpio_green_status)]))
+            if pulse_length_ist > self.pulse_length_soll:
+                print("long pulse", pulse_length_ist)
+            else:
+                print("short pulse", pulse_length_ist)
             self.green_btn_fire = False
-            pulse_duration = int((datetime.datetime.now() - self.time_btn_pressed).microseconds / 1000)
-            print("Release: GPIO.input(self.gpio_timbreuse.BTN_GREEN)",GPIO.input(self.gpio_timbreuse.BTN_GREEN))
-            print(pulse_duration)
-            if pulse_duration > 400 : 
-                self.yellow_button_fired()
-        
+
+
+
+
+
+
+
         # red button
         if channel == self.gpio_timbreuse.BTN_RED and GPIO.input(self.gpio_timbreuse.BTN_RED) and not self.red_btn_fire:
             self.time_btn_pressed = datetime.datetime.now()
@@ -409,7 +419,7 @@ class Timbreuse:
         
         self.gpio_timbreuse.lcd_init()
         
-        last_time = datetime.datetime.now()
+        self.time_btn_pressed = datetime.datetime.now()
         passe_no = 0
         self.gpio_timbreuse.lcd_string(str(datetime.datetime.now()), self.gpio_timbreuse.LCD_LINE_1)
         self.gpio_timbreuse.lcd_string("Welcome         ", self.gpio_timbreuse.LCD_LINE_2)
@@ -417,10 +427,10 @@ class Timbreuse:
         pause_time = 10
         
         while True:
-            elapsed = (datetime.datetime.now() - last_time).total_seconds()
-            
-            if elapsed >= pause_time:
-                while self.button_working:
+            while self.button_working:
+                
+                elapsed = (datetime.datetime.now() - self.time_btn_pressed).total_seconds()
+                if elapsed >= pause_time:
                     time.sleep(0.1)
                     
                 self.update_idle_display()
