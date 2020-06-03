@@ -25,7 +25,7 @@ from gpio_lib_timbreuse import GpioTimbreuse
 
 class Timbreuse:
     """
-        Ce programme, élaboré à but de formation, permet la saisie des temps de travail de la famille jMb
+        Ce programme, conçu à but de formation, permet la saisie des temps de travail de la famille jMb
         Les fonctionnalités seront les suivantes:
             - pour chaque personne enregistrer les début du travail anisi que le mandat pour lequel l'activité est effectuée
                 (un mandat peut être spécifique à un utilisateur ou attribué à plusieurs personnes)
@@ -125,22 +125,45 @@ class Timbreuse:
 
         # empêcher la idle_task d'accéder à l'affichage
         self.button_working = True
+        
+        # GREEN BUTTON
         gpio_green_status = GPIO.input(self.gpio_timbreuse.BTN_GREEN)
-        # GREEN button RAISE
+        # RAISE
         if channel == self.gpio_timbreuse.BTN_GREEN and gpio_green_status and not self.green_btn_fire:
             print(" ".join(["\ninput:", str(gpio_green_status)]))
             self.time_btn_pressed = datetime.datetime.now()
             self.green_btn_fire = True
 
-        # GREEN button FALL
+
+        # FALL
         if channel == self.gpio_timbreuse.BTN_GREEN and not gpio_green_status and self.green_btn_fire:
             pulse_length_ist = int((datetime.datetime.now() - self.time_btn_pressed).microseconds / 1000)
             print(" ".join(["input:", str(gpio_green_status)]))
             if pulse_length_ist > self.pulse_length_soll:
                 print("long pulse", pulse_length_ist)
+                self.yellow_button_fired()
             else:
                 print("short pulse", pulse_length_ist)
+                self.green_button_fired()
             self.green_btn_fire = False
+        
+        # RED BUTTON
+        gpio_red_status = GPIO.input(self.gpio_timbreuse.BTN_RED)
+        # RAISE
+        if channel == self.gpio_timbreuse.BTN_RED and gpio_red_status and not self.red_btn_fire:
+            self.time_btn_pressed = datetime.datetime.now()
+            self.red_btn_fire = True
+
+        # FALL
+        if channel == self.gpio_timbreuse.BTN_RED and not gpio_red_status and self.red_btn_fire:
+            pulse_length_ist = int((datetime.datetime.now() - self.time_btn_pressed).microseconds / 1000)
+            if pulse_length_ist > self.pulse_length_soll:
+                print("long pulse", pulse_length_ist)
+                self.yellow_button_fired()
+            else:
+                print("short pulse", pulse_length_ist)
+                self.red_button_fired()
+            self.red_btn_fire = False
 
 
 
