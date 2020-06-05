@@ -67,16 +67,16 @@ class Timbreuse:
         
         # version infos
         VERSION_NAME = "jMb timbreuse" 
-        VERSION_NO = "0.01.12" 
-        VERSION_DATE = "28.05.2020"
+        VERSION_NO = "0.01.24" 
+        VERSION_DATE = "05.06.2020"
         VERSION_DESCRIPTION = "Saisie des temps de travail jMb"
-        VERSION_STATUS = "en développement "
+        VERSION_STATUS = "prototype en service "
         VERSION_AUTEUR = "josmet"
         
         self.button_working = False # si True empèche la ilde_task de mettre à jour l'affichage
         
         # initialisation de la classe MysqlTimbreuse
-        self.ip_db_server = "192.168.1.142"
+        self.ip_db_server = "192.168.1.109"
         self.mysql_timbreuse = MysqlTimbreuse(self.ip_db_server)
         self.choose_person = False      
         self.choose_task = False
