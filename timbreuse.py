@@ -6,11 +6,12 @@
 #        /  /  \/  \   /_
 #     /_/  /        \ /_/
 #
-#  timbreuse.py
+#        timbreuse.py
 #  jMb home timbreuse Script
 #
+#--------------------------------------
 # Author  : Joseph Métrailler
-#
+# juin 2020
 #--------------------------------------
 # import RPi.GPIO as GPIO
 import time
@@ -67,10 +68,10 @@ class Timbreuse:
         
         # version infos
         VERSION_NAME = "jMb timbreuse" 
-        VERSION_NO = "0.01.24" 
-        VERSION_DATE = "05.06.2020"
+        VERSION_NO = "0.1.0" 
+        VERSION_DATE = "10.06.2020"
         VERSION_DESCRIPTION = "Saisie des temps de travail jMb"
-        VERSION_STATUS = "prototype en service "
+        VERSION_STATUS = "prototype en service"
         VERSION_AUTEUR = "josmet"
         
         self.button_working = False # si True empèche la ilde_task de mettre à jour l'affichage
@@ -100,54 +101,6 @@ class Timbreuse:
         self.id_qui_stop_en_cours = 0
         self.qui_stop_en_cours = ""
         self.stop_running = False
-#         
-#         # Define GPIO to LCD mapping
-#         self.LCD_RS = 7
-#         self.LCD_E  = 12
-#         self.LCD_D4 = 27
-#         self.LCD_D5 = 24
-#         self.LCD_D6 = 23
-#         self.LCD_D7 = 18
-#         self.LCD_BACKLIGHT = 20
-#  
-#         # Define some device constants
-#         self.LCD_WIDTH = 16    # Maximum characters per line
-#         self.LCD_CHR = True
-#         self.LCD_CMD = False
-#          
-#         self.LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
-#         self.LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
-#          
-#         # Timing constants
-#         self.E_PULSE = 0.0001
-#         self.E_DELAY = 0.0001
-# 
-#         # initialise buttons adress
-#         self.BTN_RED = 6
-#         self.BTN_GREEN = 19
-#         self.BTN_BLUE = 26
-#         self.BTN_YELLOW = 13
-#         self.BTN_GRAY = 5
-#         
-#         GPIO.setwarnings(False)
-#         GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
-#         
-#         GPIO.setup(self.LCD_E, GPIO.OUT, initial=0)  # E
-#         GPIO.setup(self.LCD_RS, GPIO.OUT, initial=0) # RS
-#         GPIO.setup(self.LCD_D4, GPIO.OUT, initial=0) # DB4
-#         GPIO.setup(self.LCD_D5, GPIO.OUT, initial=0) # DB5
-#         GPIO.setup(self.LCD_D6, GPIO.OUT, initial=0) # DB6
-#         GPIO.setup(self.LCD_D7, GPIO.OUT, initial=0) # DB7
-#         
-#         GPIO.setup(self.LCD_BACKLIGHT, GPIO.OUT, initial=1) # backlight
-#         GPIO.output(self.LCD_BACKLIGHT, False) # put backlight on
-#         
-#         # initialise the GPIO buttons inputs
-#         GPIO.setup(self.BTN_RED, GPIO.IN, GPIO.PUD_DOWN)
-#         GPIO.setup(self.BTN_GREEN, GPIO.IN, GPIO.PUD_DOWN)
-#         GPIO.setup(self.BTN_BLUE, GPIO.IN, GPIO.PUD_DOWN)
-#         GPIO.setup(self.BTN_YELLOW, GPIO.IN, GPIO.PUD_DOWN)
-#         GPIO.setup(self.BTN_GRAY, GPIO.IN, GPIO.PUD_DOWN)
 
         # initialise buttons interrupts
         GPIO.add_event_detect(self.gpio_timbreuse.BTN_RED, GPIO.BOTH, callback = self.button_pressed_callback, bouncetime = 50)
@@ -393,7 +346,6 @@ class Timbreuse:
         
         cur.close()
         con.close()
-#         self.button_working = False
 
     def gray_button_fired(self): # cancel
 
@@ -417,79 +369,10 @@ class Timbreuse:
             self.button_working = False
         
         
-    def blue_button_fired(self): # down
+    def blue_button_fired(self): # not used for the moment
         pass
-#  
-#     def lcd_init(self): 
-#         # Initialise display
-#         self.lcd_byte(0x33, self.LCD_CMD) # 110011 Initialise
-#         self.lcd_byte(0x32, self.LCD_CMD) # 110010 Initialise
-#         self.lcd_byte(0x06, self.LCD_CMD) # 000110 Cursor move direction
-#         self.lcd_byte(0x0C, self.LCD_CMD) # 001100 Display On,Cursor Off, Blink Off
-#         self.lcd_byte(0x28, self.LCD_CMD) # 101000 Data length, number of lines, font size
-#         self.lcd_byte(0x01, self.LCD_CMD) # 000001 Clear display
-#         time.sleep(self.E_DELAY)
-# 
-#     def lcd_byte(self, bits, mode):
-#         # Send byte to data pins
-#         # bits = data
-#         # mode = True  for character
-#         #        False for command
-# 
-#         GPIO.output(self.LCD_RS, mode) # RS
-#         # High bits
-#         GPIO.output(self.LCD_D4, False)
-#         GPIO.output(self.LCD_D5, False)
-#         GPIO.output(self.LCD_D6, False)
-#         GPIO.output(self.LCD_D7, False)
-#         if bits&0x10==0x10:
-#             GPIO.output(self.LCD_D4, True)
-#         if bits&0x20==0x20:
-#             GPIO.output(self.LCD_D5, True)
-#         if bits&0x40==0x40:
-#             GPIO.output(self.LCD_D6, True)
-#         if bits&0x80==0x80:
-#             GPIO.output(self.LCD_D7, True)
-# 
-#         # Toggle 'Enable' pin
-#         self.lcd_toggle_enable()
-# 
-#         # Low bits
-#         GPIO.output(self.LCD_D4, False)
-#         GPIO.output(self.LCD_D5, False)
-#         GPIO.output(self.LCD_D6, False)
-#         GPIO.output(self.LCD_D7, False)
-#         if bits&0x01==0x01:
-#             GPIO.output(self.LCD_D4, True)
-#         if bits&0x02==0x02:
-#             GPIO.output(self.LCD_D5, True)
-#         if bits&0x04==0x04:
-#             GPIO.output(self.LCD_D6, True)
-#         if bits&0x08==0x08:
-#             GPIO.output(self.LCD_D7, True)
-# 
-#         # Toggle 'Enable' pin
-#         self.lcd_toggle_enable()
-#      
-#     def lcd_toggle_enable(self):
-# 
-#         # Toggle enable
-#         time.sleep(self.E_DELAY)
-#         GPIO.output(self.LCD_E, True)
-#         time.sleep(self.E_PULSE)
-#         GPIO.output(self.LCD_E, False)
-#         time.sleep(self.E_DELAY)
-#      
-#     def lcd_string(self, message,line):
-#         # Send string to display
-# 
-#         message = message.ljust(self.LCD_WIDTH," ")
-# 
-#         self.lcd_byte(line, self.LCD_CMD)
-# 
-#         for i in range(self.LCD_WIDTH):
-#             self.lcd_byte(ord(message[i]),self.LCD_CHR)
-#   
+    
+    # mise à jour de l'affichage pendant le repos
     def update_idle_display(self):
         
         if len(self.tasks_running) > 0:
@@ -512,7 +395,7 @@ class Timbreuse:
             self.gpio_timbreuse.lcd_string(str(datetime.datetime.now()),self.gpio_timbreuse.LCD_LINE_1)
             self.gpio_timbreuse.lcd_string("nobody working", self.gpio_timbreuse.LCD_LINE_2)
     
-        
+    # bouckle d'attente   
     def waiting_loop(self):
         
         self.gpio_timbreuse.lcd_init()
