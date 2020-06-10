@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*-
+# -*- coding: utf-8 -*-
 """
     class Mysql to manage de db access for the programm timbreuse
 """
@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 class MysqlTimbreuse:
     
     """
-        Cette classe gere les accès sur la base de données de la timbreuse jMb
+        Cette classe gere les acces sur la base de données de la timbreuse jMb
     """
 
     def __init__(self, ip_db_server):
@@ -172,7 +172,7 @@ class MysqlTimbreuse:
 if __name__ == '__main__':
 
     # ERROR : direct acces to this class is not ok, reason = ????? (21.04.2020 jm)
-    mysql_init = MysqlTimbreuse('192.168.1.142')
+    mysql_init = MysqlTimbreuse('192.168.1.109')
     ip  = mysql_init.local_ip
     connexion = mysql_init.get_db_connexion()
     
