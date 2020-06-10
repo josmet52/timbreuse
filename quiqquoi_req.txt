@@ -1,1 +1,0 @@
-SELECT quoi.idquoi, quoi.activite FROM quoi INNER JOIN quiquoi ON (quoi.idquoi = quiquoi.idquoi) AND (quoi.idquoi = quiquoi.idquoi) WHERE (((quiquoi.idqui)= 2 )) ORDER BY quiquoi.defaut DESC , quoi.activite LIMIT 1;
